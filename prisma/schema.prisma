@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+ //this unique constraint will be used in pushing the userexists function to the 
+  //database. look up to "auth.services"
+// now the trick on the message part we have to clearly define the relation of if the message belongs to the buyer or the realtor
+//alo create a model for the User
+//Homes is gotten from Home Model to complete the Home-User relation!!😎
+model User {
+  id               Int       @id @default(autoincrement())
+  name             String
+  phone            String
+  email            String    @unique
+  password         String
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  userType         UserType
+  homes            Home[]
+  buyer_messages   Message[] @relation("buyer_messages")
+  realtor_messages Message[] @relation("realtor_messages")
+}
+
+//now here we are adding 'realtor_id' as the foreign key to Home, such that many Homes will belong to either one user or many users
+//'realtor' declared below 'realtor_id' does a good job in clarifying the relation of realtor_id as the foreign key and being the child of 'id' the User primary key
+//images is gotten from Image Model to complete the Home-Image relation!!😎
+//now lets define the Model Home
+model Home {
+  id                  Int          @id @default(autoincrement())
+  address             String
+  number_of_bedrooms  Int
+  number_of_bathrooms Float
+  city                String
+  listed_date         DateTime     @default(now())
+  price               Float
+  land_size           Float
+  propertyType        propertyType
+  created_at          DateTime     @default(now())
+  updated_at          DateTime     @updatedAt
+  images              Image[]
+  realtor_id          Int
+  realtor             User         @relation(fields: [realtor_id], references: [id])
+  Message             Message[]
+}
+
+//now here we are adding 'home_id' as the foreign key to Image, such that many images will belong to either one house or many houses
+//'Home' declared below 'home_id' does a good job in clarifying the relation of home_id as the foreign key and being the child of 'id' the Home primary key
+//lets create a model for the image
+model Image {
+  id         Int       @id @default(autoincrement())
+  url        String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  home_id    Int
+  Home       Home      @relation(fields: [home_id], references: [id])
+  messages   Message[]
+}
+
+//add buyer_id as FK
+//add realtor_id as FK
+//model for message
+model Message {
+  id         Int    @id @default(autoincrement())
+  message    String
+  home_id    Int
+  home       Home   @relation(fields: [home_id], references: [id])
+  realtor_id Int
+  realtor    User   @relation("buyer_messages", fields: [realtor_id], references: [id])
+  buyer_id   Int
+  buyer      User   @relation("realtor_messages", fields: [buyer_id], references: [id])
+  Image      Image? @relation(fields: [imageId], references: [id])
+  imageId    Int?
+}
+
+//lets create an enum for propertyType
+enum propertyType {
+  RESIDENTIAL
+  CONDO
+}
+
+//lets also create the enum to store the userType
+
+enum UserType {
+  BUYER
+  REALTOR
+  ADMIN
+}
