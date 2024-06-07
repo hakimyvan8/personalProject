@@ -1,29 +1,14 @@
 /* eslint-disable prettier/prettier */
-import {CallHandler, ExecutionContext, NestInterceptor, createParamDecorator} from "@nestjs/common";
+import { ExecutionContext, createParamDecorator} from "@nestjs/common";
 
-//now lets create the custom User interceptor that implements NestInterceptor
+export interface UserInfo {
+    name:string,
+    iat:number,
+    id:number,
+    exp:number 
+}
 
-export class UserInterceptor implements NestInterceptor {
-    //lets create an intercept method
-    intercept(context: ExecutionContext, handler: CallHandler){
-
-        //the switchToHttp context can handle multiple ways of transferring information
-        const request = context.switchToHttp().getRequest();
-
-        //we can extract the toke, with its headers, request and authorization(the main key we want)
-        const token = request.headers.authorization;
-        console.log({ token })
-
-        //any code written here will be intercepting the request
-        return handler.handle(
-             //any code written here will be intercepting the response
-        )
-    }
-} 
-
-export const User = createParamDecorator(() => {
-    return {
-        id: 4,
-        name: "Laith"
-    }
+export const User = createParamDecorator((data, context: ExecutionContext) => {
+    const request = context.switchToHttp().getRequest();
+    return request.user;
 })

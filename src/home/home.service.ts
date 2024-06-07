@@ -74,7 +74,7 @@ export class HomeService {
      });
     }
 
-    async createHome({address, numberOfBathrooms, numberOfBedrooms, city, landSize, price, propertyType, images}: CreateHomeParams){
+    async createHome({address, numberOfBathrooms, numberOfBedrooms, city, landSize, price, propertyType, images}: CreateHomeParams, userId: number,){
         const home = await this.prismaService.home.create({
             data: {
                 address,
@@ -84,7 +84,7 @@ export class HomeService {
                 land_size: landSize,
                 propertyType,
                 price,
-                realtor_id: 4
+                realtor_id: userId,
             }
         })
 
@@ -133,5 +133,53 @@ export class HomeService {
                 }
             }
             ) 
+        }
+
+        async getHomeById(id: number){
+            const home = await this.prismaService.home.findUnique({
+                where: {
+                    id
+                },
+                select: {
+                    id: true,
+                    address: true,
+                    city: true,
+                    price: true,
+                    propertyType: true,
+                    number_of_bathrooms: true,
+                    number_of_bedrooms: true,
+                    images: {
+                        select: {
+                            url: true
+                        }
+                    }
+                }
+            })
+            if(!home){
+                throw new NotFoundException();
+            }
+            return new HomeResponseDto(home);
+        }
+
+        async getRealtorByHomeId(id: number){
+         const home = await this.prismaService.home.findUnique({
+            where: {
+                id
+            },
+            select: {
+                realtor: {
+                    select: {
+                        name: true,
+                        id: true,
+                        email: true,
+                        phone: true
+                    }
+                }
+            }
+         })
+         if(!home){
+             throw new NotFoundException();
+         }
+         return home.realtor;
         }
     }
