@@ -1,9 +1,10 @@
 /* eslint-disable prettier/prettier */
-import { Controller,Post, Body, Param, UnauthorizedException, ParseEnumPipe } from '@nestjs/common';
+import { Controller,Post, Body, Get, Param, UnauthorizedException, ParseEnumPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SigninDto, SignupDto, generateProductKeyDto } from '../dtos/dtos/auth.dto';
 import { UserType } from '@prisma/client';
 import * as bcrypt from "bcryptjs";
+import { User, UserInfo } from '../decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -45,6 +46,12 @@ export class AuthController {
     generateProductKey(@Body() {userType, email}: generateProductKeyDto){
         return this.authService.generateProductKey(email, userType);
     }
+
+    @Get("/me")
+    me( @User() user: UserInfo){
+      return user;
+    }
+
 }
 
 

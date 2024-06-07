@@ -8,7 +8,7 @@ import { HomeController } from './home/home.controller';
 import { HomeService } from './home/home.service';
 import { HomeModule } from './home/home.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { UserInterceptor } from './user/decorators/user.decorator';
+import { UserInterceptor } from './user/interceptors/user.interceptor';
 
 @Module({
   imports: [UserModule, PrismaModule, HomeModule],

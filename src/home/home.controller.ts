@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, UnauthorizedException} from '@nestjs/common';
 import { HomeService } from './home.service';
 import { CreateHomeDto, HomeResponseDto, UpdateHomeDto } from './dto/dto/home.dto';
 import { propertyType } from '@prisma/client';
-import { User } from 'src/user/decorators/user.decorator';
+import { User, UserInfo } from 'src/user/decorators/user.decorator';
 
 @Controller('home')
 export class HomeController {
@@ -39,37 +39,41 @@ export class HomeController {
     }
 
 
-    //get home by id controller
+    //get home by id controller 
     @Get(':id')
-    getHome(){
-        return {}
+    getHome(@Param('id', ParseIntPipe) id: number){
+        return this.homeService.getHomeById(id);
     }
-
-    // @Get(':id')
-    // getHome(@Param('id', ParseIntPipe) id: number){
-    //     return this.homeService.getHomeById(id);
-    // }
 
     //post a new home
     @Post()
-    createHome(@Body() body: CreateHomeDto, @User() user){
-        console.log(user);
-        return 'hello';
-        // return this.homeService.createHome(body)
+    createHome(@Body() body: CreateHomeDto, @User() user:UserInfo){
+        return this.homeService.createHome(body, user.id)
     }
 
     //update a home by id
     @Put(":id")
-    updateHome(
+    async updateHome(
         @Param("id", ParseIntPipe) id: number,
-        @Body() body: UpdateHomeDto
+        @Body() body: UpdateHomeDto,
+        @User() user:UserInfo
     ){
+        const realtor = await this.homeService.getRealtorByHomeId(id);
+        if(realtor.id !== user.id){
+            throw new UnauthorizedException()
+        }
         return this.homeService.updateHomeById(id, body)
     }
 
     //delete a home by id
     @Delete(":id")
-    deleteHome(@Param('id', ParseIntPipe) id: number){
+    async deleteHome(
+        @Param('id', ParseIntPipe) id: number,
+        @User() user:UserInfo){
+            const realtor = await this.homeService.getRealtorByHomeId(id);
+            if(realtor.id !== user.id){
+                throw new UnauthorizedException()
+            }
         return this.homeService.deleteHomeById(id);
 
         //so were going to cook a deletehome without restriction of foreign key constraint from images table
